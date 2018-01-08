@@ -24,6 +24,12 @@ The goals / steps of this project are the following:
 [image7]: ./output_images/color_search_2.png
 [image8]: ./output_images/color_search_3.png
 [image9]: ./output_images/heat_map.png
+[image10]: ./output_images/label_3_frame_12.png
+[image11]: ./output_images/label_3_frame_18.png
+[image12]: ./output_images/label_3_frame_21.png
+[image13]: ./output_images/label_3_frame_31.png
+[image14]: ./output_images/label_3_frame_38.png
+[image15]: ./output_images/label_3_frame_50.35.png
 [video1]: ./output_video/project_video.mp4
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
