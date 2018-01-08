@@ -53,3 +53,58 @@ def color_hist(img, nbins=32):    #bins_range=(0, 256)
     # Return the individual histograms, bin_centers and feature vector
     return hist_features
 
+
+# Define a function to extract features from a list of images
+# Have this function call bin_spatial() and color_hist()
+def extract_features(imgs, color_space='RGB', spatial_size=(32, 32),
+                        hist_bins=32, orient=9, 
+                        pix_per_cell=8, cell_per_block=2, hog_channel=0,
+                        spatial_feat=True, hist_feat=True, hog_feat=True):
+    # Create a list to append feature vectors to
+    features = []
+    # Iterate through the list of images
+    for img in imgs:
+        file_features = []
+        
+        # Read in each one by one
+        feature_image = convert_colorspace(img, color_space)   
+        
+        if spatial_feat == True:
+            spatial_features = bin_spatial(feature_image, size=spatial_size)
+            file_features.append(spatial_features)
+        if hist_feat == True:
+            # Apply color_hist()
+            hist_features = color_hist(feature_image, nbins=hist_bins)
+            file_features.append(hist_features)
+        if hog_feat == True:
+        # Call get_hog_features() with vis=False, feature_vec=True
+            if hog_channel == 'ALL':
+                hog_features = []
+                for channel in range(feature_image.shape[2]):
+                    hog_features.append(get_hog_features(feature_image[:,:,channel], 
+                                        orient, pix_per_cell, cell_per_block, 
+                                        vis=False, feature_vec=True))
+                hog_features = np.ravel(hog_features)        
+            else:
+                hog_features = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=False, feature_vec=True)
+            # Append the new feature vector to the features list
+            file_features.append(hog_features)
+        features.append(np.concatenate(file_features))
+    # Return list of feature vectors
+    return features
+
+
+def draw_boxes(img, boxes, random_color=True):
+    if np.mean(img) > 1:
+        img = img.astype(np.float32)/255
+    draw_img = np.copy(img)
+    for (top_left, bot_right) in boxes:
+        if random_color:
+            color = (np.random.randint(0,255)/255.0, np.random.randint(0,255)/255.0, np.random.randint(0,255)/255.0)
+            random_color = True
+        else:
+            color = (0,0,1)
+        cv2.rectangle(draw_img,tuple(top_left),tuple(bot_right),color,6) 
+        
+    return draw_img

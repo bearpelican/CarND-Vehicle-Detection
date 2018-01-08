@@ -17,12 +17,20 @@ The goals / steps of this project are the following:
 [//]: # (Image References)
 [image1]: ./output_images/car_sample_imgs.png
 [image2]: ./output_images/visualize_colorspace_features.png
-[image3]: ./output_images/sliding_windows.jpg
-[image4]: ./output_images/sliding_window.jpg
-[image5]: ./examples/bboxes_and_heat.png
-[image6]: ./examples/labels_map.png
-[image7]: ./examples/output_bboxes.png
-[video1]: ./project_video.mp4
+[image3]: ./output_images/gradient_visualization_HSV
+[image4]: ./output_images/sliding_window_img.png
+[image5]: ./output_images/color_coded_search_boxes.png
+[image6]: ./output_images/color_search_5.png
+[image7]: ./output_images/color_search_2.png
+[image8]: ./output_images/color_search_3.png
+[image9]: ./output_images/heat_map.png
+[image10]: ./output_images/label_frame_12.png
+[image11]: ./output_images/label_frame_18.png
+[image12]: ./output_images/label_frame_21.png
+[image13]: ./output_images/label_frame_31.png
+[image14]: ./output_images/label_frame_38.png
+[image15]: ./output_images/label_frame_50.35.png
+[video1]: ./output_video/project_video.mp4
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -86,20 +94,28 @@ Several of the accuracies were recorded in the spreadsheet: `ParameterClassifica
 
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
-I trained a linear SVM with the above parameters in the notebook `4-SVM-Classify.ipynb`. I was able to achieve a test accuracy of %%%
+I trained a linear SVM with the above parameters in the notebook `4-SVM-Classify.ipynb`. I was able to achieve a test accuracy of 99.3%
 
 ### Sliding Window Search
 
 #### 1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
 
-I first used the sliding windows implementation as a sanity test to make sure I could locate cars - `Cell X` `4-SVM-Classify.ipynb`.
-A search window of 96x96 px seemed captured the cars nicely. To limit falst positives, I limited the starting y position search to 400px.
+I first used the sliding windows implementation as a sanity test to make sure I could locate cars - `5-Sliding-Window.ipynb - Cell 3`.
+A search window of 96x96 px seemed captured the cars nicely. To limit false positives, I limited the starting y position search to 400px.
 
 ![alt text][image4]
 
 I then combined the sliding widnow search with HOG sub-sampling to speed up image search in the notebook `5-HOG-Subsampling.ipynb`.  
-This method seemed to have more trouble detecting cars, so I found that I needed to stack the searches on top of eachother with different window sizes.
-6 Boxes did the trick:
+
+I color coded the search boxes to get a better idea of what we were searching (Scale of 2):
+
+![alt text][image5]
+
+
+
+#### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
+
+Ultimately I searched on 5 scales using HSV 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  
 |Box|Scale|ystart|ystop|
 |:---|---|---|---:|
 |0|1|370|520|
@@ -109,18 +125,16 @@ This method seemed to have more trouble detecting cars, so I found that I needed
 |4|2.5|410|680|
 |5|3|400|700|
 
-I color coded the search boxes to get a better idea of what we were searching:
+Here are some example images:  
 
-![alt text][image5]
+![alt text][image6]
 
-#### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
+![alt text][image7]
 
-Ultimately I searched on 6 scales using HSV 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
-
-![alt text][image4]
+![alt text][image8]
 ---
 
-The performance of this pipeline is pretty slow. To speed it up:
+The performance of this pipeline is pretty slow. To speed it up:  
 HOG-subsampling as mentioned earlier.  
 16 pixels per cell sped up processing time
 
@@ -133,20 +147,17 @@ Here's a [link to my video result](./project_video.mp4)
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
+I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap in and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  `7-False-Positives.ipynb - Cell 1`
 
-Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
+### Here are six frames and their corresponding bounding boxes, heatmaps and labels:  
 
-### Here are six frames and their corresponding heatmaps:
-
-![alt text][image5]
-
-### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
-![alt text][image6]
-
-### Here the resulting bounding boxes are drawn onto the last frame in the series:
-![alt text][image7]
-
+![alt text][image9]
+![alt text][image10]
+![alt text][image11]
+![alt text][image12]
+![alt text][image13]
+![alt text][image14]
+![alt text][image15]
 
 
 ---
@@ -157,9 +168,9 @@ Here's an example result showing the heatmap from a series of frames of video, t
 
 Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
 
-The processing pipeline still runs pretty slow. It currently takes a second to process each frame on my laptop. More testing would need to be done to evalutate the tradeoffs between speed and accuracy. Some ideas include -
-Using 2 color channels instead of all 3 and speed up processing
-Use an ensemble of different parameters and colorspaces can maybe achieve higher accuracy
-Keeping track of objects that have appeared on the screen to help eliminate false positives
+The processing pipeline still runs pretty slow. It currently takes a second to process each frame on my laptop. More testing would need to be done to evalutate the tradeoffs between speed and accuracy. Some ideas include -  
+Using 2 color channels instead of all 3 and speed up processing  
+Use an ensemble of different parameters and colorspaces can maybe achieve higher accuracy  
+Keeping track of objects that have appeared on the screen to help eliminate false positives  
 
 
